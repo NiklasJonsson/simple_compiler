@@ -1,0 +1,104 @@
+%class "LangParser";
+%package "lang.ast";
+
+%embed {:
+	static public class SyntaxError extends RuntimeException { public SyntaxError(String msg) {super(msg);}}
+	// Disable syntax error recovery
+	protected void recoverFromError(Symbol token, TokenStream in) {
+		throw new SyntaxError("Cannot recover from the syntax error");
+	}
+:};
+
+
+%terminals INT, ID, LPAREN, RPAREN, LCURLY ,RCURLY, COMMA, SEMICOLON, RETURN, ADD, SUB, MUL, DIV, MOD, EQ, IF, ELSE, EQEQ, NOEQ, GREQ, LEEQ, GR, LE, WHILE, NUMERAL;
+
+%typeof program = "Program";
+%typeof function = "Function";
+%typeof function_list = "List";
+%typeof functionId = "FunctionId";
+%typeof param_list = "List";
+%typeof param = "Param";
+%typeof idUse = "IdUse";
+%typeof expr_list = "List";
+%typeof expr = "Expr";
+%typeof stmt_list = "List";
+%typeof stmt = "Stmt";
+%typeof declStmt = "DeclStmt";
+%typeof returnStmt = "ReturnStmt";
+%typeof assStmt = "AssStmt";
+%typeof ifStmt = "IfStmt";
+%typeof condition = "Condition";
+%typeof whileStmt = "WhileStmt";
+%typeof numeral = "Numeral";
+%typeof functionCall = "FunctionCall";
+%typeof functionStmt = "FunctionStmt";
+%typeof divExpr = "DivExpr";
+%typeof subExpr = "SubExpr";
+%typeof modExpr = "ModExpr";
+%typeof addExpr = "AddExpr";
+%typeof mulExpr = "MulExpr";
+%typeof equal = "Equal";
+%typeof notEqual = "NotEqual";
+%typeof greaterEqual = "GreaterEqual";
+%typeof lesserEqual = "LesserEqual";
+%typeof lesser = "Lesser";
+%typeof greater = "Greater";
+
+%left MUL,DIV,MOD;
+%left ADD,SUB;
+%nonassoc GREQ, EQEQ, NOEQ, LEEQ, GR, LE;
+
+%goal program;
+program = function_list.l {: return new Program(l); :};
+function_list = 
+	function.a {: return new List().add(a); :} 
+	| function_list.l function.a {: return l.add(a); :};
+
+function = INT functionId.id LPAREN param_list.pl RPAREN LCURLY stmt_list.sl RCURLY {: return new Function(id, pl, new Block(sl)); :};
+	functionId = ID.id {: return new FunctionId(id); :};
+	param_list = 
+		/* EPSILON */ {: return new List(); :}
+		| param.p {: return new List().add(p); :} 
+		| param_list.pl COMMA param.p {: return pl.add(p); :};
+	param = INT ID.id {: return new Param(id); :};
+
+	expr_list = 
+		/* EPSILON */ {: return new List(); :}
+		| expr.e {: return new List().add(e); :}
+		| expr_list.el COMMA expr.e {: return el.add(e); :};
+	expr = idUse | numeral |  addExpr | subExpr  |mulExpr | divExpr | modExpr | functionCall;
+		idUse = ID.id {: return new IdUse(id); :};
+		numeral = NUMERAL.n {: return new Numeral(n); :};
+		addExpr = expr.a ADD expr.b {: return new AddExpr(a, b); :};
+		subExpr = expr.a SUB expr.b {: return new SubExpr(a, b); :};
+		mulExpr = expr.a MUL expr.b {: return new MulExpr(a, b); :};
+		divExpr = expr.a DIV expr.b {: return new DivExpr(a, b); :};
+		modExpr = expr.a MOD expr.b {: return new ModExpr(a, b); :};
+		functionCall = ID.id LPAREN expr_list.el RPAREN {: return new FunctionCall(id, el); :};
+
+	stmt_list = 
+		stmt.s {: return new List().add(s); :}
+		| stmt_list.sl stmt.s {: return sl.add(s); :};
+	stmt = declStmt | returnStmt | assStmt | ifStmt | whileStmt | functionStmt;
+
+		declStmt = INT ID.id SEMICOLON {: return new DeclStmt(id, new Opt()); :};
+		declStmt = INT ID.id EQ expr.e SEMICOLON  {: return new DeclStmt(id, new Opt(e)); :};
+
+
+		returnStmt = RETURN expr.e SEMICOLON {: return new ReturnStmt(e); :};
+
+		assStmt = idUse.id EQ expr.e SEMICOLON  {: return new AssStmt(id, e); :};
+
+		functionStmt = functionCall.f SEMICOLON {: return new FunctionStmt(f); :};
+
+		ifStmt = IF LPAREN condition.c RPAREN LCURLY stmt_list.sl RCURLY {: return new IfStmt(c, new Block(sl), new Opt()); :};
+		ifStmt = IF LPAREN condition.c RPAREN LCURLY stmt_list.sl1 RCURLY ELSE LCURLY stmt_list.sl2 RCURLY {: return new IfStmt(c, new Block(sl1), new Opt(new Block(sl2))); :};
+		whileStmt = WHILE LPAREN condition.c RPAREN LCURLY stmt_list.sl RCURLY {: return new WhileStmt(c, new Block(sl)); :};
+
+	condition = equal | notEqual | greaterEqual | lesserEqual | lesser | greater; 
+		equal = expr.a EQEQ expr.b {: return new Equal(a, b); :};
+		notEqual = expr.a NOEQ expr.b {: return new NotEqual(a, b); :};
+		greaterEqual = expr.a GREQ expr.b {: return new GreaterEqual(a, b); :};
+		lesserEqual = expr.a LEEQ expr.b {: return new LesserEqual(a, b); :};
+		lesser = expr.a LE expr.b {: return new Lesser(a, b); :};
+		greater = expr.a GR expr.b {: return new Greater(a, b); :};

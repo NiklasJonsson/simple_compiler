@@ -1,0 +1,12 @@
+int main() {
+	int hej = 3;
+	fun(hej, 3);
+	fun(hej - 2, 3 * 2);
+}
+
+int fun(int a, int b) {
+	print(a);
+	print(b);
+	a = a + 3;
+	print(a);
+}

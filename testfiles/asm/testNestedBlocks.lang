@@ -1,0 +1,18 @@
+int main() {
+	int a = 1;
+	while (a < 100) {
+		a = a + 1;
+		if (a == 25) {
+			print (a);
+			int k = 0;
+			while (k < 5) {
+				print(k);
+				k = k+1;
+				
+			}
+		}
+		if (a == 50) {
+			print(a);
+		}
+	}
+}

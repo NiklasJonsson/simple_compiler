@@ -1,0 +1,40 @@
+Program ::= Function*;
+
+Function ::= FunctionId Param* Block;
+FunctionId ::= <ID>;
+Param ::= <ID>;
+
+abstract Expr;
+abstract BinaryExpr : Expr ::= Left:Expr Right:Expr;
+IdUse : Expr ::= <ID>;
+Numeral : Expr ::= <NUMERAL>;
+MulExpr : BinaryExpr;
+AddExpr : BinaryExpr;
+DivExpr : BinaryExpr;
+SubExpr : BinaryExpr;
+ModExpr : BinaryExpr;
+
+FunctionCall : Expr ::= <ID> Expr*;
+
+abstract Stmt;
+DeclStmt : Stmt ::= <ID> [Expr];
+UnknownDecl : DeclStmt;
+AssStmt : Stmt ::= IdUse Expr;
+ReturnStmt : Stmt ::= Expr;
+FunctionStmt : Stmt ::= FunctionCall;
+WhileStmt : Stmt ::= Condition Block;
+IfStmt : Stmt ::= Condition if:Block [else:Block];
+Block ::= Stmt*;
+
+abstract Condition ::= Left:Expr Right:Expr;
+Equal : Condition;
+NotEqual : Condition;
+Greater : Condition;
+Lesser : Condition;
+GreaterEqual : Condition;
+LesserEqual : Condition;
+
+abstract Type;
+IntType : Type;
+BoolType : Type;
+UnknownType : Type;

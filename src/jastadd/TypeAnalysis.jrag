@@ -1,0 +1,54 @@
+aspect TypeAnalysis {
+	syn nta IntType Program.intType() = new IntType();
+	syn nta BoolType Program.boolType() = new BoolType();
+	syn nta UnknownType Program.unknownType() = new UnknownType();
+
+	syn boolean Type.isUnknown();
+	syn boolean IntType.isUnknown() = false;
+	syn boolean BoolType.isUnknown() = false;
+	syn boolean UnknownType.isUnknown() = true;
+
+	inh IntType ASTNode.intType();
+	inh BoolType ASTNode.boolType();
+	inh UnknownType ASTNode.unknownType();
+
+	eq Program.getChild().intType() = intType();
+	eq Program.getChild().boolType() = boolType();
+	eq Program.getChild().unknownType() = unknownType();
+
+	syn Boolean Type.compatibleType(Type t);
+	syn Boolean IntType.compatibleType(Type t) = t == intType();
+	syn Boolean BoolType.compatibleType(Type t) = t == boolType();
+	syn Boolean UnknownType.compatibleType(Type t) = t == unknownType() || t == boolType() || t == intType();
+
+	// ------------------------------- EXPR TYPE ----------------------------------
+	syn Type Expr.type();
+	syn Type IdUse.type() = decl().isUnknown() ? unknownType() : intType();
+	syn Type Numeral.type() = intType();
+	syn Type BinaryExpr.type() = getLeft().type() == intType() && getRight().type() == intType() ? intType() : unknownType();
+	syn Type FunctionCall.type() = decl().type();
+
+	// ------------------------------- CONDITION TYPE ----------------------------------
+	syn Type Condition.type() = !getLeft().type().isUnknown() && !getRight().type().isUnknown() && getLeft().type().compatibleType(getRight().type()) ? boolType() : unknownType();
+
+	// ------------------------------- PARAM TYPE ----------------------------------
+	syn Type Param.type() = intType();
+
+	// ------------------------------- DECLSTMT TYPE ----------------------------------
+	syn Type DeclStmt.type() {
+		if (hasExpr()) {
+			return getExpr().type();
+		}
+		return intType();
+	}
+
+	// ------------------------------- FUNCTIONID TYPE ----------------------------------
+	syn Type FunctionId.type() = intType();
+
+	// ------------------------ EXPECTED TYPE ---------------------------------
+	syn Type Expr.expectedType() = intType();
+	syn Type Condition.expectedType() = boolType();
+	syn Type Param.expectedType() = intType();
+	syn Type DeclStmt.expectedType() = intType();
+	syn Type FunctionId.expectedType() = intType();
+}

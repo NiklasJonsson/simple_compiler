@@ -1,0 +1,131 @@
+aspect NameAnalysis {
+	// --------------------------- INTERFACE -------------------------------
+	public interface Declaration {
+		public String getID();
+		public boolean isUnknown();
+		public Type type();
+		public String uniqueName();
+	}
+
+	DeclStmt implements Declaration;
+	Param implements Declaration;
+	FunctionId implements Declaration;
+
+	// --------------------------- PROGRAM -------------------------------
+	eq Program.getChild().lookup(String name) = unknownDecl();
+	eq Program.getChild().declareLookup(String name) = unknownDecl();
+	eq Program.getChild().functionLookup(String name) = unknownDecl();
+
+	eq Program.getFunction(int index).functionIdLookup(String name) = localLookup(name, index - 1);
+	eq Program.getFunction(int index).declareLookup(String name) = localLookup(name, index); // Param och DeclStmt
+	eq Program.getFunction().functionLookup(String name) = localLookup(name, getNumFunction() - 1);
+
+	syn Declaration Program.localLookup(String name, int index) {
+		for (int i = 0; i <= index; i++) {
+			if (getFunction(i).getFunctionId().getID().equals(name)) {
+				return getFunction(i).getFunctionId();
+			}
+		}
+		for (Function f: predefinedFunctions()) {
+				if (f.getFunctionId().getID().equals(name)) {
+					return f.getFunctionId();
+				}
+		}
+		return unknownDecl();
+	}
+
+	// --------------------------- FUNCTION -------------------------------
+	inh Declaration Function.lookup(String name);
+	inh Declaration Function.declareLookup(String name);
+
+	eq Function.getBlock().lookup(String name) {
+		Declaration decl = localLookup(name, getNumParam() - 1);
+		return !decl.isUnknown() ? decl : lookup(name);
+	}
+
+	eq Function.getBlock().skipScopeLookup(String name) {
+		Declaration decl = localLookup(name, getNumParam() - 1);
+		return !decl.isUnknown() ? decl : declareLookup(name);
+	}
+
+	eq Function.getParam(int index).declareLookup(String name) {
+		Declaration decl = localLookup(name, index - 1);
+		return !decl.isUnknown() ? decl : declareLookup(name);
+	}
+
+	syn Declaration Function.localLookup(String name, int until) {
+		for (int i = 0; i <= until ; i++) {
+			if (getParam(i).getID().equals(name)){
+				return getParam(i);
+			}
+		}
+		return unknownDecl();
+	}
+
+	// --------------------------- BLOCK -------------------------------
+	inh Declaration Block.lookup(String name);
+	inh Declaration Block.declareLookup(String name);
+	inh Declaration Block.skipScopeLookup(String name);
+
+	eq Block.getStmt(int index).lookup(String name) {
+		Declaration decl = localLookup(name, index - 1);
+		return !decl.isUnknown() ? decl : lookup(name);
+	}
+
+	eq Block.getStmt(int index).declareLookup(String name) {
+		Declaration decl = localLookup(name, index - 1);
+		return !decl.isUnknown() ? decl : skipScopeLookup(name);
+	}
+
+	syn Declaration Block.localLookup(String name, int until) {
+		for (int i = 0; i <= until; i++) {
+			if (getStmt(i) instanceof DeclStmt){
+				if (((DeclStmt) getStmt(i)).getID().equals(name)) {
+					return (DeclStmt) getStmt(i);
+				}
+			}
+		}
+		return unknownDecl();
+	}
+	// --------------------------- FUNCTIONCALL -------------------------------
+	syn Declaration FunctionCall.decl() = functionLookup(getID());
+	inh Declaration FunctionCall.functionLookup(String name);
+
+	// --------------------------- IDUSE -------------------------------
+	syn Declaration IdUse.decl() = lookup(getID());
+	inh Declaration IdUse.lookup(String name);
+
+	// --------------------------- DECLSTMT -------------------------------
+	inh Declaration DeclStmt.declareLookup(String name);
+	syn boolean DeclStmt.isMultiplyDeclared() = !declareLookup(getID()).isUnknown();
+
+	// --------------------------- PARAM -------------------------------	
+	inh Declaration Param.declareLookup(String name);
+	syn boolean Param.isMultiplyDeclared() = !declareLookup(getID()).isUnknown();
+
+	// --------------------------- FUNCTIONID -------------------------------
+	inh Declaration FunctionId.functionIdLookup(String name);
+	syn boolean FunctionId.isMultiplyDeclared() = !functionIdLookup(getID()).isUnknown();
+}
+
+aspect PredefinedFunctions {
+	
+	syn nta List<Function> Program.predefinedFunctions() {
+		List<Function> list = new List<Function>();
+		list.add(new Function(new FunctionId("read"), new List(), new Block(new List())));
+		list.add(new Function(new FunctionId("print"), (new List()).add(new Param("diff")), new Block(new List())));
+		return list;
+	}
+
+	inh List<Function> ASTNode.predefinedFunctions();
+	eq Program.getChild().predefinedFunctions() = predefinedFunctions();
+}
+
+aspect CircularDefinitions {
+	/* Identify circular definitions in let expressions */
+	syn boolean IdUse.isCircular() = inExprOf(decl());
+	inh boolean IdUse.inExprOf(Declaration decl);
+	eq DeclStmt.getExpr().inExprOf(Declaration decl)
+		= getID() == decl.getID();
+	eq Program.getChild().inExprOf(Declaration decl) = false;
+}

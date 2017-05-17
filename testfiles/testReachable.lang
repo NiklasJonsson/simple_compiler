@@ -1,0 +1,14 @@
+int main() {
+	fun();
+	fun1();
+}
+int fun() {
+	fun1();
+	fun2();
+}
+int fun2() {
+	fun();
+}
+int fun1() {
+	fun1();
+}

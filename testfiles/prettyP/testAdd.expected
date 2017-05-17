@@ -1,0 +1,7 @@
+int fun() {
+	return a + b;
+}
+int minusfun() {
+	return b - a;
+}
+

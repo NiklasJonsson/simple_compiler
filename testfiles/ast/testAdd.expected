@@ -1,0 +1,20 @@
+Program
+  List
+    Function
+      FunctionId
+      List
+      Block
+        List
+          ReturnStmt
+            AddExpr
+              IdUse
+              IdUse
+    Function
+      FunctionId
+      List
+      Block
+        List
+          ReturnStmt
+            SubExpr
+              IdUse
+              IdUse

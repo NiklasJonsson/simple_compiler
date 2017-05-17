@@ -1,0 +1,12 @@
+int main() { 
+	int c = 2 * 3; 
+	int a = 1 + 2;
+	int b = 9 - 2; 
+	int d = 15 / 5;
+	int e = 20 % 4;
+	print(c);
+	print(a);
+	print(b);
+	print(d);
+	print(e);
+}

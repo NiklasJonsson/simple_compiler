@@ -1,0 +1,6 @@
+int assFun() {
+	int a = b;
+	int b;
+	return c;
+}
+

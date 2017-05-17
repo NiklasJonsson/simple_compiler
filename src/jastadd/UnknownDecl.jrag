@@ -1,0 +1,11 @@
+aspect UnknownDecl {
+	syn nta UnknownDecl Program.unknownDecl() = new UnknownDecl("<unknown>", new Opt());
+	
+	inh UnknownDecl ASTNode.unknownDecl();
+	eq Program.getChild().unknownDecl() = unknownDecl();
+	
+	syn boolean DeclStmt.isUnknown() = false;
+	syn boolean Param.isUnknown() = false;
+	syn boolean FunctionId.isUnknown() = false;
+	eq UnknownDecl.isUnknown() = true;
+}

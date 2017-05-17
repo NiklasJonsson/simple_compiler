@@ -1,0 +1,22 @@
+aspect CallTree {
+	
+	coll Set<FunctionId> Function.functionCalls() [new TreeSet<FunctionId>()] with add root Function;
+
+	inh Function FunctionCall.enclosingFunction();
+	eq Function.getChild().enclosingFunction() = this;
+
+	FunctionCall contributes ((FunctionId) decl())
+		to Function.functionCalls() for enclosingFunction();
+
+	FunctionId implements Comparable<FunctionId>;
+	syn int FunctionId.compareTo(FunctionId other) = getID().compareTo(other.getID());
+
+	syn	Set<FunctionId> Function.reachable() circular [new TreeSet<FunctionId>()]	{	
+		TreeSet<FunctionId>	result	=	new TreeSet<FunctionId>();	
+		for	(FunctionId id : functionCalls()) {	
+				result.add(id);	
+				result.addAll(id.getFunction().reachable());
+		}
+	return result;
+	}
+}

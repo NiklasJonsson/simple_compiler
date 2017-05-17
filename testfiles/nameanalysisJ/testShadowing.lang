@@ -1,0 +1,14 @@
+int fun(int a, int b) {
+	if (a == b) {
+		int a = b;
+		int c = a;
+		while (a == c) {
+			int a;
+			int b;
+			int c;	
+		}
+	} else {
+		int c;
+	}
+	int c;
+}

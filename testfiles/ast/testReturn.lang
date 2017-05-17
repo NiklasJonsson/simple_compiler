@@ -1,0 +1,9 @@
+int fun(int a){
+	return a;
+}
+int funfun(){
+	return n;
+}
+int funfunfun(int t, int o){
+	return n;
+}

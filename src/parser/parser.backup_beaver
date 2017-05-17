@@ -1,0 +1,54 @@
+%class "LangParser";
+%package "lang.ast";
+
+%embed {:
+	static public class SyntaxError extends RuntimeException { public SyntaxError(String msg) {super(msg);}}
+	// Disable syntax error recovery
+	protected void recoverFromError(Symbol token, TokenStream in) {
+		throw new SyntaxError("Cannot recover from the syntax error");
+	}
+:};
+
+%terminals INT, ID, LPAREN, RPAREN, LCURLY ,RCURLY, COMMA, SEMICOLON, RETURN, LOGOP, COMPOP;
+
+%typeof program = "Program";
+%typeof function = "Function";
+%typeof function_list = "List";
+%typeof functionId = "FunctionId";
+%typeof param_list = "List";
+%typeof param = "Param";
+%typeof stmt_list = "List";
+%typeof declareStmt = "DeclareStmt";
+%typeof idUse = "IdUse";
+%typeof return = "Return";
+%typeof logExpr = "LogExpr";
+%typeof aritExpr = "AritExpr";
+%typeof term = "CompExpr";
+
+%goal program;
+program = function_list.l {: return new Program(l); :};
+function_list = 
+	function.a {: return new List().add(a); :} 
+	| function_list.l function.a {: return l.add(a); :};
+function = INT functionId.id LPAREN param_list.pl RPAREN LCURLY stmt_list.sl return.r RCURLY {: return new Function(id, pl, sl, r); :};
+functionId = ID.id {: return new FunctionId(id); :};
+
+param_list = 
+	/* EPSILON */ {: return new List(); :}
+	| param.p {: return new List().add(p); :} 
+	| param_list.pl COMMA param.p {: return pl.add(p); :};
+param = INT ID.id {: return new Param(id); :};
+
+stmt_list = 
+	/* EPSILON */ {: return new List(); :}
+	| stmt.s {: return new List().add(s); :}
+	| stmt_list.sl stmt.s {: return sl.add(s); :};
+stmt = declareStmt;
+	declareStmt = INT ID.id SEMICOLON {: return new DeclareStmt(id); :};
+return = RETURN returnable.r SEMICOLON {: return new Return(r); :};
+	returnable = compExpr | logExpr;
+		compExpr = idUse | aritExpr;
+			idUse = ID.id {: return new IdUse(id); :};
+			aritExpr = compExpr.a COMPOP term.b {: return new AritExpr(a,b); :};
+				term = idUse | LPAREN compExpr RPAREN;
+		logExpr = compExpr.a LOGOP compExpr.b {: return new LogExpr(a, b); :};
