@@ -1,0 +1,9 @@
+int fun() {
+	finfun(a);
+	finfinfun();
+	finfun(finfinfun());
+	finfun(1 + 2);
+	haha(r,o,l,i,g,t);
+	return a;
+}
+	

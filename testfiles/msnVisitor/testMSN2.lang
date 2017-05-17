@@ -1,0 +1,5 @@
+int fun() {
+	if(a == b) {
+		int c;
+	}
+}

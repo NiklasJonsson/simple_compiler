@@ -1,0 +1,7 @@
+int hej() {
+	return a * n + t * o;
+}
+int hello() {
+	return a * a + b;
+}
+

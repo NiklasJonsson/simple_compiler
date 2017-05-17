@@ -1,0 +1,147 @@
+import java.util.HashMap;
+
+aspect Evaluator {
+	class ActivationRecord {
+		private HashMap<String, Integer> hm = new HashMap<String, Integer>();
+
+		public void put(String s, int i) {
+			hm.put(s, new Integer(i));
+		}
+
+		public int get(String s) {
+			return hm.get(s).intValue();
+		}
+
+	}
+	public void Program.eval(){
+		for(Function f : getFunctions()) {
+			if(f.getFunctionId().getID().equals("main")) {
+				f.eval(new ActivationRecord());
+				return;
+			}
+		}
+		throw new RuntimeException("Main function not found");
+	}
+
+	public int Function.eval(ActivationRecord actrec){
+		return getBlock().eval(actrec);
+	}
+	eq Function.getBlock().getScopePrefix() = "";
+
+	public int Block.eval(ActivationRecord actrec) {
+		for (Stmt s : getStmts()) {
+			int temp = s.eval(actrec);
+			if(s.isReturn()) {
+				returned = true;
+				return temp;
+			}
+		}
+		return 0;
+	}
+	public boolean Block.returned = false;
+	eq Block.getChild().getPrefix() = getScopePrefix() + "_"; 
+	inh String Block.getScopePrefix();
+	eq Block.getStmt(int index).getScopePrefix() = index + "_" + getScopePrefix(); 
+//---------------------------------- STMT ---------------------------------------
+	public abstract int Stmt.eval(ActivationRecord actrec);
+
+	syn boolean Stmt.isReturn() = false;
+	syn boolean ReturnStmt.isReturn() = true;
+
+	public int FunctionStmt.eval(ActivationRecord actrec) {
+		getFunctionCall().eval(actrec);
+		return 0;
+	}
+
+	inh String DeclStmt.getPrefix();
+	syn String DeclStmt.uniqueName() = getPrefix() + getID();
+	syn String Param.uniqueName() = getID();
+	syn String FunctionId.uniqueName() = getID();
+
+	public int DeclStmt.eval(ActivationRecord actrec) {
+		if (hasExpr()) {
+			actrec.put(uniqueName(), getExpr().eval(actrec));
+		} else {
+			actrec.put(uniqueName(), 0);
+		}
+		return 0;
+	}
+
+	public int AssStmt.eval(ActivationRecord actrec) {
+		actrec.put(getIdUse().decl().uniqueName(), getExpr().eval(actrec));
+		return 0;
+	}
+
+	public int ReturnStmt.eval(ActivationRecord actrec) {
+		return getExpr().eval(actrec);
+	}
+
+	public int IfStmt.eval(ActivationRecord actrec) {
+		if(getCondition().eval(actrec) == 1) {
+			return getif().eval(actrec);
+		} else if (haselse()) {
+			return getelse().eval(actrec);
+		}
+		return 0;
+	}
+
+	public int WhileStmt.eval(ActivationRecord actrec) {
+		while(getCondition().eval(actrec) == 1) {
+			int val = getBlock().eval(actrec);
+			if (getBlock().returned) {
+				return val;
+			}
+		}
+		return 0;
+	}
+//---------------------------------- EXPR ---------------------------------------
+	public abstract int Expr.eval(ActivationRecord actrec);
+	
+	public int IdUse.eval(ActivationRecord actrec) { 
+		return actrec.get(decl().uniqueName());
+	}
+
+	public int Numeral.eval(ActivationRecord actrec) {
+		return Integer.parseInt(getNUMERAL());
+	}
+	public int FunctionCall.eval(ActivationRecord actrec) {
+		FunctionId id = (FunctionId) decl();
+		if (getID().equals("print")) {
+			System.out.println(getExpr(0).eval(actrec));
+		}
+		if (getID().equals("read")) {
+			System.out.println("not implemented get");
+		}
+		ActivationRecord next = new ActivationRecord();
+		Function f = id.getFunction();
+		for (int i = 0; i < getNumExpr(); i++) {
+			next.put(f.getParam(i).getID(), getExpr(i).eval(actrec));
+		}
+		return f.eval(next); // Depends on FunctionAnalysis.jrag being compiled at the same time
+	}
+
+	public int BinaryExpr.eval(ActivationRecord actrec) {
+		int ret = operator(getLeft().eval(actrec), getRight().eval(actrec));
+		return ret;
+	}
+
+	syn int BinaryExpr.operator(int a, int b);
+	syn int MulExpr.operator(int a, int b) = a * b;
+	syn int AddExpr.operator(int a, int b) = a + b;
+	syn int SubExpr.operator(int a, int b) = a - b;
+	syn int ModExpr.operator(int a, int b) = a % b;
+	syn int DivExpr.operator(int a, int b) = a / b;
+
+	public int Condition.eval(ActivationRecord actrec) {
+		int ret = operator(getLeft().eval(actrec), getRight().eval(actrec));
+		return ret;
+	}
+
+	syn int Condition.operator(int a, int b);
+	syn int Greater.operator(int a, int b) = a > b ? 1 : 0;
+	syn int Lesser.operator(int a, int b) = a < b ? 1 : 0;
+	syn int NotEqual.operator(int a, int b) = a != b ? 1 : 0;
+	syn int Equal.operator(int a, int b) = a == b ? 1 : 0;
+	syn int GreaterEqual.operator(int a, int b) = a >= b ? 1 : 0;
+	syn int LesserEqual.operator(int a, int b) = a <= b ? 1 : 0;
+}

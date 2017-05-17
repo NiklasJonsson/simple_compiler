@@ -1,0 +1,6 @@
+int fuckingfun(){
+	return x * y;
+}
+int crayfun(){
+	return x / y;
+}

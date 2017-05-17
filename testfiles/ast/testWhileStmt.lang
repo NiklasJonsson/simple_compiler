@@ -1,0 +1,6 @@
+int fun(){
+	while( a == b ) {
+		a = b;
+	}
+	return a;
+}

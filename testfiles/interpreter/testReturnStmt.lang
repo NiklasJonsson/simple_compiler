@@ -1,0 +1,9 @@
+int main() {
+	int a = fun(3);
+	print(a);
+}
+
+int fun(int a) {
+	a = a + 3;
+	return a + 2;
+}

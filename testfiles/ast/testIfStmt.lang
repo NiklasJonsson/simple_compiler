@@ -1,0 +1,14 @@
+int ifFun() {
+	if(a == b){
+		int a = b;
+		int b;
+	} else {
+		int q = r;
+	}
+	return s;
+}
+int ifNoElse() {
+	if(u != y) {
+	int r = y;
+	}
+}

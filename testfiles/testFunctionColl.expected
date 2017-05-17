@@ -1,0 +1,8 @@
+main:
+	fun1
+	fun2
+fun:
+	fun2
+fun2:
+	fun1
+fun1:

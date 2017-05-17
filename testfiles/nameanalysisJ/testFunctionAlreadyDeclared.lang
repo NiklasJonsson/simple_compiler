@@ -1,0 +1,6 @@
+int fun() {
+	int a;
+}
+int fun() {
+	int b;
+}

@@ -1,0 +1,8 @@
+int main() {
+	fun1();
+	fun2();
+}
+
+int fun(){ fun2();}
+int fun2(){ fun1();}
+int fun1(){ int hje = 0;}

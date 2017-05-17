@@ -1,0 +1,19 @@
+int main() {
+	int count = 2;
+	while(count <= 10) {
+		int a = 4;
+		int b = 1;
+		if(a != count) {
+			print(a);
+			int a = 3;
+			print(a);
+		} else { 
+			print(b);
+			int b = 0;
+			print(b);
+		}
+		print(count);
+		count = count + 1;
+		print(count);
+	}
+}

@@ -1,0 +1,13 @@
+aspect FunctionAnalysis {
+	syn boolean FunctionCall.correctNumParams() {
+		Declaration d = decl();
+		if (d instanceof FunctionId) {
+			FunctionId id = (FunctionId) d;
+			return id.getFunction().getNumParam() == getNumExpr();
+		}
+		return false;
+	}
+
+	eq Function.getFunctionId().getFunction() = this;
+	inh Function FunctionId.getFunction();
+}

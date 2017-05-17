@@ -1,0 +1,14 @@
+Program
+  List
+    Function
+      FunctionId
+      List
+      Block
+        List
+          DeclStmt
+            Opt
+              IdUse
+          DeclStmt
+            Opt
+          ReturnStmt
+            IdUse
